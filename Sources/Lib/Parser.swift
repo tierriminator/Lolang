@@ -49,7 +49,7 @@
  
  *whitespace* = ' ' | \t | \n
  */
-class Parser {
+public class Parser {
     
     /// The code level in which the code to parse is.
     private var level: Int = 0
@@ -65,6 +65,7 @@ class Parser {
         (" ", self.parseSeq),
         ("\t", self.parseSeq),
         ("\n", self.parseSeq),
+        ("\r", self.parseSeq),
         ("trol", self.parseTrol),
         ("lol", self.parseLol),
         ("rofl", self.parseRofl),
@@ -79,7 +80,7 @@ class Parser {
     ]
     private lazy var parsingTree: ParsingTree = constructPT(from: self.prefixParsFuncMap)
     
-    init(_ code: String) {
+    public init(_ code: String) {
         stream = CodeStream(code)
     }
     
@@ -111,7 +112,7 @@ class Parser {
     
     // the parsing functions
     
-    static let whitespace = " \n\t\r".characters
+    public static let whitespace = " \n\t\r".characters
     private func parseSeq(_ pref: String) throws -> AST? {
         try checkPrefArgCount(required: [0, 1], cmd: "Seq")
         // pre-optimize by combining multiple consecutive sequence operators into one
@@ -239,7 +240,7 @@ class Parser {
         return res
     }
     
-    func parse() throws -> AST? {
+    public func parse() throws -> AST? {
         while !endOfBlock {
             let next = try parseNextStmt()
             if next != nil {
@@ -260,10 +261,10 @@ class Parser {
  A struct to traverse a code snippet.
  It conforms to `IteratorProtocol` and `Sequence` and can therefore be used in a `for in` loop.
  */
-struct CodeStream: Sequence, IteratorProtocol {
+public struct CodeStream: Sequence, IteratorProtocol {
     private var iterator: IndexingIterator<String.CharacterView>
     /// Indicates the location of the current character
-    private(set) var loc: Location = (0, -1)
+    public private(set) var loc: Location = LocationBeforeCode
     /// `true` if the next character is on a new line, `false` if it is not
     private var nextNL = false
     /// the next character if it was previously peeked, or `nil` when it wasn't peeked
@@ -273,7 +274,7 @@ struct CodeStream: Sequence, IteratorProtocol {
     }
     
     @discardableResult
-    mutating func next() -> Character? {
+    public mutating func next() -> Character? {
         let next = nextC ?? iterator.next()
         nextC = nil
         if next != nil {
@@ -290,6 +291,8 @@ struct CodeStream: Sequence, IteratorProtocol {
             if(recording) {
                 recorded.append(next!)
             }
+        } else {
+            loc = LocationAfterCode
         }
         return next
     }
@@ -300,7 +303,7 @@ struct CodeStream: Sequence, IteratorProtocol {
     }
     
     /// indicates whether this stream is recording or not
-    private(set) var recording = false
+    public private(set) var recording = false
     private var recorded = ""
     
     /** 
@@ -308,14 +311,14 @@ struct CodeStream: Sequence, IteratorProtocol {
      (but no nil values).
      Multiple subsequent calls of this function have no effect without calling `stopRecording()`
     */
-    mutating func record() {
+    public mutating func record() {
         recording = true
     }
     
     /** stops the recording and returns and deletes the recorded string
      - returns: the recorded string
     */
-    mutating func stopRecording() -> String {
+    public mutating func stopRecording() -> String {
         recording = false
         let ret = recorded
         recorded = ""
@@ -330,7 +333,7 @@ struct CodeStream: Sequence, IteratorProtocol {
  A parsing function must map a string (the defining prefix) to an abstract syntax tree or nil if the keyword/command describes the end of a block of code.
  Therefore a parsing function might support multiple defining prefixes.
  */
-private enum ParsingTree {
+enum ParsingTree: Equatable {
     /// The root node of a tree. No root should have a parent in a tree.
     indirect case Root([ParsingTree])
     /// An ordinary node, which holds a character and a list of next nodes.
@@ -380,8 +383,27 @@ private enum ParsingTree {
     }
 }
 
+/**
+ Compares the two given `ParsingTree`s for equality.
+ Note however, that this function only compares the structure of the tree and the different characters, not the functions at the leafs, as this is an unsupported feature of swift.
+ - parameter lhs: The left hand argument
+ - parameter rhs: The right hand argument
+ */
+func ==(lhs: ParsingTree, rhs: ParsingTree) -> Bool {
+    switch (lhs, rhs) {
+    case (let .Leaf(c1, _), let .Leaf(c2, _)):
+        return c1 == c2
+    case (let .Node(c1, a1), let .Node(c2, a2)):
+        return c1 == c2 && a1 == a2
+    case (let .Root(a1), let .Root(a2)):
+        return a1 == a2
+    default:
+        return false
+    }
+}
+
 /// Constructs the parsing tree from a set of maps from identifying prefixes to parsing functions
-private func constructPT(from map: [(String, (String) throws -> AST?)]) -> ParsingTree {
+func constructPT(from map: [(String, (String) throws -> AST?)]) -> ParsingTree {
     var copy = map
     copy.sort(by: {$0.0 < $1.0})
     var op: [(char: Character, next: Int)] = []
@@ -434,14 +456,29 @@ private func constructPT(from map: [(String, (String) throws -> AST?)]) -> Parsi
     return .Root(opPTStack)
 }
 
-/// A location in the code where `l` indicates the line number and `c` the character index in this line
-typealias Location = (l: Int, c: Int)
+/**
+ A location in the code where `l` indicates the line number and `c` the character index in this line.
+ The location (0, -1) indicates a location before the code, and (0, -2) a location after the code.
+ */
+public typealias Location = (l: Int, c: Int)
+
+public let LocationBeforeCode: Location = (0, -1)
+public let LocationAfterCode: Location = (0, -2)
+
+/// indicates whether the given location is before the code (i.e. it is (0, -1))
+func isBeforeCode(loc: Location) -> Bool {
+    return loc == LocationBeforeCode
+}
+/// indicates whether the given location is after the code (i.e. it is (0, -2))
+func isAfterCode(loc: Location) -> Bool {
+    return loc == LocationAfterCode
+}
 
 /**
  An error that is thrown when the parser detects a syntax error.
  Every SyntaxError holds a String that indicates the faulty code snippet and a location of the error in the code.
  */
-enum SyntaxError: Error {
+public enum SyntaxError: Error {
     case IllegalArgument(arg: String, cmd: String, Location)
     case InvalidPrefix(prefix: String, Location)
     case UnexpectedEndOfCode

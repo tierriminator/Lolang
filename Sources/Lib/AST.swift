@@ -8,7 +8,7 @@
 
 /// A abstract syntax tree for a (piece) of code
 /// This enum defines the syntax of Lolang
-enum AST {
+public enum AST {
     /// A normal sequence operator for combining statements
     indirect case Seq(AST, AST)
     /// A sequence operator, that has no lhs or no rhs or both. It can and should be optimized away.
