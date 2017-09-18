@@ -9,6 +9,10 @@
 #if os(Linux)
 import XCTest
 
-XCTMain([testCase(ParserTest.allTests)])
+XCTMain([
+    testCase(CodeStreamTest.allTests),
+    testCase(ParsingTreeConstructorTest.allTests),
+    testCase(ParerTest.allTests)
+    ])
 
 #endif

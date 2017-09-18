@@ -25,9 +25,9 @@
  
  *seq* = *whitespace* {*whitespace*}
  
- *trol* = tr{ol}  
+ *trol* = trol{ol}
  
- *lol* = l{ol}  
+ *lol* = lol{ol}  
  
  *rofl* = rofl *prog* copter
  
@@ -43,7 +43,7 @@
  
  *dope* = dope  
  
- *fuu* = f{u}
+ *fuu* = fu{u}
  
  *digit* = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
  
@@ -52,13 +52,22 @@
 public class Parser {
     
     /// The code level in which the code to parse is.
-    private var level: Int = 0
+    private var level: Int = -1
     
     /// A flag that indicates to the base parsing function, whether the end of a block was reached.
     private var endOfBlock: Bool = false
     
     /// A buffer for the parsed code that might be used as prefix arguments of further commands
-    private var parsed: [AST] = []
+    private var parsedStack: [[AST]] = []
+    
+    private var parsed: [AST] {
+        get {
+            return parsedStack[level]
+        }
+        set(newParsed) {
+            parsedStack[level] = newParsed
+        }
+    }
     
     /// The parsing tree of this parser
     private lazy var prefixParsFuncMap: [(String, (String) throws -> AST?)] = [
@@ -87,34 +96,65 @@ public class Parser {
     private var stream: CodeStream
     
     /**
-     Serves as a convenience function for `checkPrefArgCount(required: [Int], cmd: String)`
-     in the case of only one allowed argument count.
-     - parameter required: The allowed prefix argument count
+     Checks whether there are enough arguments for the given command to execute
+     - parameter required: The minimally required prefix argument count
      - parameter cmd: A description of the command
      */
     private func checkPrefArgCount(required: Int, cmd: String) throws {
-        try checkPrefArgCount(required: [required], cmd: cmd)
+        let actual = parsed.count
+        if actual < required {
+            throw SyntaxError.IllegalPrefixArgumentCount(actual: actual, required: required, cmd: cmd, stream.loc)
+        }
     }
     
     /**
-     Checks whether the correct amount of prefixing arguments are given for a command.
-     Every keyword / command should call this function first.
-     - parameter required: An array of the allowed amounts of prefix arguments
-     - parameter cmd: A `String` describing the command.
-     - throws: `SyntaxError.IllegalArgumentCount` if the check failed
-     */
-    private func checkPrefArgCount(required: [Int], cmd: String) throws {
-        let actual = parsed.count
-        if !required.contains(actual) {
-            throw SyntaxError.IllegalPrefixArgumentCount(actual: actual, required: required, cmd: cmd, stream.loc)
+     Requires that the next characters of the code stream match the given string and skips past them
+     - argument next: The next assumed characters
+     - returns: `true` if the next characters match `next`, `false` otherwise
+    */
+    private func requireNext(_ next: String) -> Bool {
+        for c in next.characters {
+            if c != stream.next() {
+                return false
+            }
         }
+        return true
+    }
+    
+    /**
+     Requires that the next characters of the code stream match the given argument and skips past them
+     - argument arg: The next assumed argument
+     - throws: `SyntaxError.IllegalArgument` if the next characters don't match the given argument
+    */
+    private func requireNextArgument(_ arg: String, cmd: String) throws {
+        stream.record()
+        if !requireNext(arg) {
+            throw SyntaxError.IllegalArgument(arg: stream.stopRecording(), cmd: cmd, stream.loc)
+        }
+        stream.stopRecording()
+    }
+    
+    /**
+     Checks whether the next characters match the given string and skips them if so.
+     - argument next: The next assumed characters
+     - returns: `true` if the next characters match `next`, `false` otherwise
+    */
+    private func checkNext(_ next: String) -> Bool {
+        if stream.peek(next.characters.count) != next {
+            return false
+        }
+        for _ in next.characters {
+            stream.next()
+        }
+        return true
     }
     
     // the parsing functions
     
     public static let whitespace = " \n\t\r".characters
+    
     private func parseSeq(_ pref: String) throws -> AST? {
-        try checkPrefArgCount(required: [0, 1], cmd: "Seq")
+        try checkPrefArgCount(required: 0, cmd: "Seq")
         // pre-optimize by combining multiple consecutive sequence operators into one
         while stream.peek() != nil && Parser.whitespace.contains(stream.peek()!) {
             stream.next()
@@ -132,13 +172,8 @@ public class Parser {
         let cmdDesc = "trol"
         try checkPrefArgCount(required: 0, cmd: cmdDesc)
         var count = 0
-        while stream.peek() == "o"{
+        while checkNext("ol"){
             count += 1
-            stream.next()
-            if stream.peek() != "l" {
-                throw SyntaxError.IllegalArgument(arg: "o\(String(describing: stream.next()))", cmd: cmdDesc, stream.loc)
-            }
-            stream.next()
         }
         return AST.Trol(count)
     }
@@ -147,13 +182,8 @@ public class Parser {
         let cmdDesc = "lol"
         try checkPrefArgCount(required: 0, cmd: cmdDesc)
         var count = 0
-        while stream.peek() == "o"{
+        while checkNext("ol"){
             count += 1
-            stream.next()
-            if stream.peek() != "l" {
-                throw SyntaxError.IllegalArgument(arg: "o\(String(describing: stream.next()))", cmd: cmdDesc, stream.loc)
-            }
-            stream.next()
         }
         return AST.Lol(count)
     }
@@ -162,12 +192,10 @@ public class Parser {
         let cmdDesc = "roflcopter"
         try checkPrefArgCount(required: 0, cmd: cmdDesc)
         if pref == "rofl" {
-            level += 1
             let res = try parse()
             return AST.Rofl(res)
         } else {
             assert(pref == "copter")
-            level -= 1
             return nil
         }
     }
@@ -176,13 +204,17 @@ public class Parser {
         let cmdDesc = "bra"
         try checkPrefArgCount(required: 0, cmd: cmdDesc)
         var argS = ""
-        while let _ = stream.peek()?.isNumber() {
+        while stream.peek() != nil && stream.peek()!.isNumber() {
             argS.append(stream.next()!)
         }
-        let arg = Int(argS) ?? -1
-        if arg < 0 {
-            throw SyntaxError.IllegalArgument(arg: argS, cmd: cmdDesc, stream.loc)
+        if argS == "" {
+            let n = stream.next()
+            if n == nil {
+                throw SyntaxError.UnexpectedEndOfCode
+            }
+            throw SyntaxError.IllegalArgument(arg: String(n!), cmd: cmdDesc, stream.loc)
         }
+        let arg = Int(argS)!
         return AST.Bra(arg)
     }
     
@@ -190,7 +222,7 @@ public class Parser {
         let cmdDesc = "fuu"
         try checkPrefArgCount(required: 0, cmd: cmdDesc)
         var count = 0
-        while stream.next() == "u" {
+        while checkNext("u") {
             count += 1
         }
         return AST.Fuu(count)
@@ -240,20 +272,47 @@ public class Parser {
         return res
     }
     
+    /**
+     Parses the next block of code in this parsers code stream.
+     - returns: The parsed abstract syntax tree
+     - throws: different syntax errors when a faulty code segment is reached
+    */
     public func parse() throws -> AST? {
+        // initialize new block
+        level += 1
+        if parsedStack.count == level {
+            parsedStack.append([])
+        }
+        
+        // parse
+        var eoc = false
         while !endOfBlock {
+            if stream.peek() == nil { // always expect end of code before parsing the next statement
+                eoc = true
+                break
+            }
             let next = try parseNextStmt()
             if next != nil {
                 parsed.append(next!)
             }
         }
+        
+        // filter for errors
+        if eoc && level > 0 {
+            throw SyntaxError.UnexpectedEndOfCode
+        }
         if parsed.count > 1 {
             throw SyntaxError.TooManyOpenStatementsAtEndOfBlock(count: parsed.count, stream.loc)
-        } else if level < 0 {
-            throw SyntaxError.UnexpectedEndOfBlock(stream.loc)
-        } else {
-            return parsed.popLast()
         }
+        if level == 0 && !eoc {
+            throw SyntaxError.UnexpectedEndOfBlock(stream.loc)
+        }
+        
+        // close current block
+        endOfBlock = false
+        let res = parsed.popLast()
+        level -= 1 // must be at last, because parsed is calculated with level
+        return res
     }
 }
 
@@ -268,15 +327,14 @@ public struct CodeStream: Sequence, IteratorProtocol {
     /// `true` if the next character is on a new line, `false` if it is not
     private var nextNL = false
     /// the next character if it was previously peeked, or `nil` when it wasn't peeked
-    private var nextC: Character? = nil
+    private var peeked = Queue<Character>()
     init(_ str: String) {
         iterator = str.characters.makeIterator()
     }
     
     @discardableResult
     public mutating func next() -> Character? {
-        let next = nextC ?? iterator.next()
-        nextC = nil
+        let next = peeked.dequeue() ?? iterator.next()
         if next != nil {
             if nextNL {
                 loc = (loc.l+1, 0)
@@ -297,9 +355,35 @@ public struct CodeStream: Sequence, IteratorProtocol {
         return next
     }
     
+    /**
+     Returns the next character in the stream, but does not count it as read,
+     meaning it will still be the next character after calling this function.
+     - returns: the next character
+    */
     mutating func peek() -> Character? {
-        nextC = nextC ?? iterator.next()
-        return nextC
+        return peek(1).characters.first
+    }
+    
+    /**
+     Returns the next few characters in the stream, but does not count them as read, 
+     meaning they will still be the next characters after calling this function.
+     - parameter amount: the amount of characters to peek
+     - returns: the next `amount` characters
+    */
+    mutating func peek(_ amount: Int) -> String {
+        var ret = ""
+        var qIterator = peeked.makeIterator()
+        for _ in 0..<amount {
+            let nextQ = qIterator.next()
+            let nextC = nextQ ?? iterator.next()
+            if nextC != nil {
+                if nextQ == nil {
+                    peeked.enqueue(nextC!)
+                }
+                ret.append(nextC!)
+            }
+        }
+        return ret
     }
     
     /// indicates whether this stream is recording or not
@@ -318,6 +402,7 @@ public struct CodeStream: Sequence, IteratorProtocol {
     /** stops the recording and returns and deletes the recorded string
      - returns: the recorded string
     */
+    @discardableResult
     public mutating func stopRecording() -> String {
         recording = false
         let ret = recorded
@@ -333,11 +418,11 @@ public struct CodeStream: Sequence, IteratorProtocol {
  A parsing function must map a string (the defining prefix) to an abstract syntax tree or nil if the keyword/command describes the end of a block of code.
  Therefore a parsing function might support multiple defining prefixes.
  */
-enum ParsingTree: Equatable {
+enum ParsingTree: Hashable {
     /// The root node of a tree. No root should have a parent in a tree.
-    indirect case Root([ParsingTree])
+    indirect case Root(Set<ParsingTree>)
     /// An ordinary node, which holds a character and a list of next nodes.
-    indirect case Node(Character, [ParsingTree])
+    indirect case Node(Character, Set<ParsingTree>)
     /// A leaf which holds the last character of a defining prefix and the parsing function for this prefix.
     case Leaf(Character, (String) throws -> AST?)
     
@@ -349,7 +434,7 @@ enum ParsingTree: Equatable {
     */
     func map(from stream: inout CodeStream) throws -> (String) throws -> AST? {
         
-        func findNext(from: [ParsingTree]) throws -> ParsingTree {
+        func findNext(from: Set<ParsingTree>) throws -> ParsingTree {
             let nextC = stream.next()
             for cur in from {
                 switch cur {
@@ -361,7 +446,7 @@ enum ParsingTree: Equatable {
                     if c == nextC {
                         return cur
                     }
-                default:
+                case .Root(_):
                     fatalError("Root node found inside parsing tree!")
                 }
             }
@@ -379,6 +464,17 @@ enum ParsingTree: Equatable {
             return try findNext(from: next).map(from: &stream)
         case let .Root(next):
             return try findNext(from: next).map(from: &stream)
+        }
+    }
+    
+    var hashValue: Int {
+        switch self {
+        case let .Leaf(c, _):
+            return c.hashValue
+        case let .Root(s):
+            return s.hashValue
+        case let .Node(c, s):
+            return c.hashValue &+ s.hashValue
         }
     }
 }
@@ -424,7 +520,7 @@ func constructPT(from map: [(String, (String) throws -> AST?)]) -> ParsingTree {
             for _ in 0..<cur.next {
                 nodeNext.append(opPTStack.popLast()!)
             }
-            opPTStack.append(.Node(cur.char, nodeNext))
+            opPTStack.append(.Node(cur.char, Set(nodeNext)))
         }
     }
     
@@ -438,8 +534,11 @@ func constructPT(from map: [(String, (String) throws -> AST?)]) -> ParsingTree {
         }
         if i != 0 && i == op.count {
             fatalError("Error creating parsing tree: a supposedly unique prefix is not unique")
-        } else if i > 0 {
+        }
+        if !op.isEmpty {
             cleanUp(til: i)
+        }
+        if i > 0 {
             op[i-1] = (pref[i-1], op[i-1].next+1)
         }
         while i < pref.count - 1 {
@@ -450,10 +549,11 @@ func constructPT(from map: [(String, (String) throws -> AST?)]) -> ParsingTree {
         
         prevFunc = cur.1
     }
+    if !op.isEmpty {
+        cleanUp(til: 0)
+    }
     
-    cleanUp(til: 0)
-    
-    return .Root(opPTStack)
+    return .Root(Set(opPTStack))
 }
 
 /**
@@ -482,8 +582,29 @@ public enum SyntaxError: Error {
     case IllegalArgument(arg: String, cmd: String, Location)
     case InvalidPrefix(prefix: String, Location)
     case UnexpectedEndOfCode
-    case IllegalPrefixArgumentCount(actual: Int, required: [Int], cmd: String, Location)
+    case IllegalPrefixArgumentCount(actual: Int, required: Int, cmd: String, Location)
     case IllegalPostfixArgumentCount(actual: Int, required: [Int], cmd: String, Location)
     case UnexpectedEndOfBlock(Location)
     case TooManyOpenStatementsAtEndOfBlock(count: Int, Location)
+    
+    var localizedDescription: String {
+        switch self {
+        case let .IllegalArgument(arg: a, cmd: c, l):
+            return "Illegal argument for command \(c): \(a) at \(l)"
+        case let .InvalidPrefix(prefix: p, l):
+            return "Invalid prefix found: \(p) at \(l)"
+        case .UnexpectedEndOfCode:
+            return "Reached an unexpected end of the code"
+        case let .IllegalPrefixArgumentCount(actual: a, required: r, cmd: c, l):
+            return "Illegal number of prefix arguments for command: \(c)" +
+                "is \(a) but should minimally be \(r) at \(l)"
+        case let .IllegalPostfixArgumentCount(actual: a, required: r, cmd: c, l):
+            return "Illegal number of postfix arguments for command: \(c)" +
+                "is \(a) but should be \(r) at \(l)"
+        case let .UnexpectedEndOfBlock(l):
+            return "Reached an unexpected end of a block at \(l)"
+        case let .TooManyOpenStatementsAtEndOfBlock(count: c, l):
+            return "More than one open statements found at the end of a block, namely \(c) at \(l)"
+        }
+    }
 }
