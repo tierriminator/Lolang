@@ -258,6 +258,7 @@ class ParserTest: XCTestCase {
             let se = error as! SyntaxError
             switch se {
             case .InvalidPrefix(_, _):
+                print(se.localizedDescription)
                 return
             default:
                 XCTFail()
@@ -275,6 +276,7 @@ class ParserTest: XCTestCase {
             let se = error as! SyntaxError
             switch se {
             case .IllegalArgument(_, _, _):
+                print(se.localizedDescription)
                 return
             default:
                 XCTFail()
@@ -290,7 +292,9 @@ class ParserTest: XCTestCase {
             XCTFail()
         } catch {
             let se = error as! SyntaxError
-            if case SyntaxError.UnexpectedEndOfCode = se {} else {
+            if case SyntaxError.UnexpectedEndOfCode = se {
+                print(se.localizedDescription)
+            } else {
                 XCTFail()
             }
         }
@@ -301,7 +305,9 @@ class ParserTest: XCTestCase {
             XCTFail()
         } catch {
             let se = error as! SyntaxError
-            if case SyntaxError.UnexpectedEndOfCode = se {} else {
+            if case SyntaxError.UnexpectedEndOfCode = se {
+                print(se.localizedDescription)
+            } else {
                 XCTFail()
             }
         }
@@ -312,7 +318,9 @@ class ParserTest: XCTestCase {
             XCTFail()
         } catch {
             let se = error as! SyntaxError
-            if case SyntaxError.UnexpectedEndOfCode = se {} else {
+            if case SyntaxError.UnexpectedEndOfCode = se {
+                print(se.localizedDescription)
+            } else {
                 XCTFail()
             }
         }
@@ -328,6 +336,7 @@ class ParserTest: XCTestCase {
             let se = error as! SyntaxError
             switch se {
             case .UnexpectedEndOfBlock(_, _):
+                print(se.localizedDescription)
                 return
             default:
                 XCTFail()
@@ -345,6 +354,7 @@ class ParserTest: XCTestCase {
             let se = error as! SyntaxError
             switch se {
             case .TooManyOpenStatementsAtEndOfBlock(_, _):
+                print(se.localizedDescription)
                 return
             default:
                 XCTFail()
