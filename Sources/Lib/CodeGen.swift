@@ -29,7 +29,7 @@ public func compile(_ ast: AST) -> Module {
     let module = Module(name: "main")
     let builder = IRBuilder(module: module)
     // add external library functions
-    let printf = builder.addFunction("printf", type: FunctionType(argTypes: [i8p], returnType: i32))
+    let printf = builder.addFunction("printf", type: FunctionType(argTypes: [i8p], returnType: i32, isVarArg: true))
     let calloc = builder.addFunction("calloc", type: FunctionType(argTypes: [i64, i64], returnType: i8p))
     let getchar = builder.addFunction("getchar", type: FunctionType(argTypes: [], returnType: i32))
     // build main function
@@ -47,12 +47,14 @@ public func compile(_ ast: AST) -> Module {
     let charReplacementStrPtr = builder.buildGEP(charReplacementStrArrayPtr, indices: [i8.zero(), i8.zero()])
     
     // small helper functions
-    func getCurVal(from: IRValue = builder.buildLoad(curRegPtr)) -> IRValue{
-        let curPtr = builder.buildCall(addRes, args: [from])
+    func getCurVal(from: IRValue? = nil) -> IRValue{
+        let _from = from ?? builder.buildLoad(curRegPtr)
+        let curPtr = builder.buildCall(addRes, args: [_from])
         return builder.buildLoad(curPtr)
     }
-    func saveVal(_ val: IRValue, to: IRValue = builder.buildLoad(curRegPtr)) {
-        let curPtr = builder.buildCall(addRes, args: [to])
+    func saveVal(_ val: IRValue, to: IRValue? = nil) {
+        let _to = to ?? builder.buildLoad(curRegPtr)
+        let curPtr = builder.buildCall(addRes, args: [_to])
         builder.buildStore(val, to: curPtr)
     }
     
