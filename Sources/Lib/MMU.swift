@@ -89,14 +89,14 @@ func buildAddressResolutionFunction(_ builder: IRBuilder, rootPT: IRValue, callo
     builder.positionAtEnd(of: offsetBuilderLoop)
     var counter = builder.buildLoad(smallCounterPointer)
     // extract offset from address
-    let shamt = builder.buildMul(counter, i8.constant(offsetBits))
+    let shamt = builder.buildMul(builder.buildZExt(counter, type: iVirt), iVirt.constant(offsetBits))
     let offsetBig = builder.buildShr(resolve.parameter(at: 0)!, shamt)
     let offset = builder.buildTrunc(offsetBig, type: IntType(width: offsetBits))
     // store offset
     let arraySlotPtr = builder.buildGEP(offsetArrayPointer, indices: [i8.zero(), counter])
     builder.buildStore(offset, to: arraySlotPtr)
     // increase counter
-    counter = builder.buildAdd(counter, i1.constant(1))
+    counter = builder.buildAdd(counter, i8.constant(1))
     builder.buildStore(counter, to: smallCounterPointer)
     // branch
     let branchCond = builder.buildICmp(counter, i8.constant(offsets), IntPredicate.equal)
@@ -105,11 +105,12 @@ func buildAddressResolutionFunction(_ builder: IRBuilder, rootPT: IRValue, callo
     // build initial setup for address resolution
     builder.positionAtEnd(of: resolutionInit)
     /// the slot in the stack where the pointer is found to the next table / memory entry
-    let nextPointerSlot = builder.buildAlloca(type: PointerType(pointee: IntType(width: pteBitCount)))
+    let nextPointerSlot = builder.buildAlloca(type: PointerType(pointee: iPte))
     // initialize the pointer inside nextPointerSlot to the first entry in the root table
     let initialOffsetPtr = builder.buildGEP(offsetArrayPointer, indices: [i8.zero(), i8.constant(levels)])
     let initialOffset = builder.buildLoad(initialOffsetPtr)
-    let initialPointer = builder.buildGEP(rootPT, indices: [initialOffset])
+    let loadedRP = builder.buildLoad(rootPT)
+    let initialPointer = builder.buildGEP(loadedRP, indices: [initialOffset])
     builder.buildStore(i8.constant(levels-1), to: smallCounterPointer)
     builder.buildStore(initialPointer, to: nextPointerSlot)
     builder.buildBr(resolutionLoop)
@@ -127,18 +128,18 @@ func buildAddressResolutionFunction(_ builder: IRBuilder, rootPT: IRValue, callo
     // build calloc block
     builder.positionAtEnd(of: callocCondition)
     let pagePtr = builder.buildCall(calloc, args: [i64.constant(pageSize), i64.constant(1)])
-    let pagePtrInt = builder.buildPtrToInt(pagePtr, type: IntType(width: pteBitCount))
+    let pagePtrInt = builder.buildPtrToInt(pagePtr, type: iPte)
     builder.buildStore(pagePtrInt, to: curPtr)
     builder.buildBr(resolutionLoopEnd)
     
     // build resolution loop end
     builder.positionAtEnd(of: resolutionLoopEnd)
-    let doublePtr = builder.buildBitCast(curPtr, type: PointerType(pointee: PointerType(pointee: IntType(width: pteBitCount))))
+    let doublePtr = builder.buildBitCast(curPtr, type: PointerType(pointee: PointerType(pointee: iPte)))
     // decrease the level
     let nextLvl = builder.buildAdd(curLevel, i8.allOnes())
     // calculate the next pointer
     let nextBasePtr = builder.buildLoad(doublePtr)
-    let nextOffsetPtr = builder.buildGEP(offsetArrayPointer, indices: [i1.zero(), nextLvl])
+    let nextOffsetPtr = builder.buildGEP(offsetArrayPointer, indices: [i8.zero(), nextLvl])
     let nextOffset = builder.buildLoad(nextOffsetPtr)
     let nextPtr = builder.buildGEP(nextBasePtr, indices: [nextOffset])
     // store the new pointer and new level
@@ -150,6 +151,7 @@ func buildAddressResolutionFunction(_ builder: IRBuilder, rootPT: IRValue, callo
     
     // build return block
     builder.positionAtEnd(of: ret)
+    let retPtr = builder.buildBitCast(nextPtr, type: PointerType(pointee: IntType(width: regBitCount)))
     builder.buildRet(nextPtr)
     
     return resolve

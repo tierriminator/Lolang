@@ -22,29 +22,35 @@ let i32 = IntType.int32
 let i64 = IntType.int64
 let iReg = IntType(width: regBitCount)
 let iVirt = IntType(width: virtAddrBitCount)
+let iPte = IntType(width: pteBitCount)
 let i8p = PointerType(pointee: i8)
 
 public func compile(_ ast: AST) -> Module {
     // initiate main function and entry point
     let module = Module(name: "main")
     let builder = IRBuilder(module: module)
+    // add root pointer global
+    let rootPt = builder.addGlobal("rootPt", initializer: PointerType(pointee: iPte).constPointerNull())
+    // add current register pointer global
+    let curRegPtr = builder.addGlobal("curRegPtr", initializer: iVirt.zero())
     // add external library functions
     let printf = builder.addFunction("printf", type: FunctionType(argTypes: [i8p], returnType: i32, isVarArg: true))
     let calloc = builder.addFunction("calloc", type: FunctionType(argTypes: [i64, i64], returnType: i8p))
     let getchar = builder.addFunction("getchar", type: FunctionType(argTypes: [], returnType: i32))
+    // add address resolution function
+    let addRes = buildAddressResolutionFunction(builder, rootPT: rootPt, calloc: calloc)
     // build main function
     let main = builder.addFunction("main", type: FunctionType(argTypes: [], returnType: VoidType()))
     let entry = main.appendBasicBlock(named: "entry")
     builder.positionAtEnd(of: entry)
     
     // write initial code
-    let rootPt = builder.buildCall(calloc, args: [i64.constant(pageSize), i64.constant(1)])
-    let addRes = buildAddressResolutionFunction(builder, rootPT: rootPt, calloc: calloc)
-    let curRegPtr = builder.buildAlloca(type: iVirt)
-    builder.buildStore(iVirt.zero(), to: curRegPtr)
+    // initialize root pointer
+    let iniRootPt = builder.buildCall(calloc, args: [i64.constant(pageSize), iPte.constant(1)])
+    let convIniRootPt = builder.buildBitCast(iniRootPt, type: PointerType(pointee: iPte))
+    builder.buildStore(convIniRootPt, to: rootPt)
     /// A pointer to a i8 array that holds the values of "%c"
-    let charReplacementStrArrayPtr = builder.buildGlobalStringPtr("%c")
-    let charReplacementStrPtr = builder.buildGEP(charReplacementStrArrayPtr, indices: [i8.zero(), i8.zero()])
+    let charReplacementStrPtr = builder.buildGlobalStringPtr("%c")
     
     // small helper functions
     func getCurVal(from: IRValue? = nil) -> IRValue{
@@ -124,6 +130,7 @@ public func compile(_ ast: AST) -> Module {
         }
     }
     compileAST(ast)
+    builder.buildRetVoid()
     
     return module
 }
