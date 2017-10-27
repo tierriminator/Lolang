@@ -46,3 +46,13 @@ public struct FatalErrorUtil {
         fatalErrorClosure = defaultFatalErrorClosure
     }
 }
+
+/// A struct to write to stderr
+public struct StderrOutputStream: TextOutputStream {
+    public mutating func write(_ string: String) {
+        fputs(string, stderr)
+    }
+}
+
+/// A stream to write to stderr
+public var errStream = StderrOutputStream()

@@ -69,7 +69,7 @@ public class Parser {
         }
     }
     
-    /// The parsing tree of this parser
+    /// the prefix to parsing function map of the parsing tree of this parser
     private lazy var prefixParsFuncMap: [(String, (String) throws -> AST?)] = [
         (" ", self.parseSeq),
         ("\t", self.parseSeq),
@@ -87,6 +87,7 @@ public class Parser {
         ("yolo", self.parseYolo),
         ("dope", self.parseDope)
     ]
+    /// The parsing tree of this parser
     private lazy var parsingTree: ParsingTree = constructPT(from: self.prefixParsFuncMap)
     
     public init(_ code: String) {
