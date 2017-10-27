@@ -3,7 +3,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "LLC",
+    name: "lolc",
     dependencies: [
         .package(url: "https://github.com/trill-lang/LLVMSwift", .branch("master")),
         .package(url: "https://github.com/kylef/PathKit", .branch("master"))
