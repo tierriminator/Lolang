@@ -1,16 +1,17 @@
 import Lib
 import LLVM
 import Foundation
+import PathKit
 
 /// prints the usage information to stderr and exits with exit code -1
 func printUsage() -> Never{
     let usage = """
         Usage: lolc <source> [options]\n
-        OPTIONS:\n
-        -o <path>\tspecify destination file\n
-        -l\toutput LLVM IR\n
-        -a\toutput assembly file\n
-        -b\toutput object file\n
+        OPTIONS:
+        -o <path>\tspecify destination file
+        -l\t\toutput LLVM IR
+        -a\t\toutput assembly file
+        -b\t\toutput object file
         -O<char>\tOptimization level. [-O0, -O1, -O2, -O3] (default: -O2)
     """
     fail(usage)
@@ -33,8 +34,8 @@ func exitGracefully(_ message: String? = nil) -> Never {
 }
 
 
-let arguments = CommandLine.arguments
-if arguments.count == 0 {
+let arguments = CommandLine.arguments.dropFirst()
+if arguments.count == 1 {
     printUsage()
 }
 
@@ -46,11 +47,35 @@ var assembly = false
 var object = false
 
 // process commandline arguments
-var i = 1
+// check source file
+let sourceStr = arguments.first!
+let sourcePath = Path(sourceStr)
+if !sourcePath.isFile {
+    fail("The given source path is no file: \(sourceStr)")
+}
+if !sourcePath.exists {
+    fail("The given source path does not exist: \(sourceStr)")
+}
+if !sourcePath.isReadable {
+    fail("The file at the given source cannot be read: \(sourceStr)")
+}
+let sourceName = sourcePath.lastComponentWithoutExtension
+// process remaining arguments
+var i = 2
 while i < arguments.count {
     if arguments[i] == "-o" {
         i += 1
-        outFile = arguments[i]
+        var outPath = Path(arguments[i])
+        if outPath.isDirectory {
+            if !outPath.exists {
+                fail("The given output directory does not exist: \(arguments[i])")
+            }
+            if !outPath.isWritable {
+                fail("No write is allowed to the given output directory: \(arguments[i])")
+            }
+            outPath = outPath + Path(sourceName)
+        }
+        outFile = outPath.absolute().string
     } else if arguments[i] == "-l" {
         emitIR = true
     } else if arguments[i].hasPrefix("-O") && arguments[i].count == 3 {
@@ -74,8 +99,7 @@ while i < arguments.count {
 }
 
 // load source file
-let sourcePath = arguments.first!
-let sourceURL = URL(fileURLWithPath: sourcePath)
+let sourceURL = URL(fileURLWithPath: sourcePath.absolute().string)
 let code: String;
 do {
     /// the lolang code that should be compiled
@@ -159,4 +183,10 @@ ldProc.launch()
 ldProc.waitUntilExit()
 if ldProc.terminationStatus != 0 {
     fail("Could not link, ld exited with code \(ldProc.terminationStatus)")
+}
+// remove obj file
+do {
+    try FileManager.default.removeItem(at: URL(fileURLWithPath: objOut))
+} catch {
+    fail("Could not remove object file \(objOut): \(error)")
 }
