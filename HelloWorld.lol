@@ -1,0 +1,48 @@
+moolah
+trolololololololol
+rofl
+	lolol
+	yolo
+	trololololololololololol
+	moolah
+copter
+yolo
+trololol
+fuu
+lolololol
+bra0
+fuuu
+trololololol
+fuuuu
+fuuuuu
+trolololol
+moolah
+moolah
+trololololol
+rofl
+	lolol
+	yolo
+	trololololololololol
+	moolah
+copter
+bra4
+fuuuuuuu
+trololololololololol
+bra4
+fuuuuuuuu
+fuuuuuuuuu
+trolololol
+bra4
+fuuuuuuuuuu
+lolololol
+bra1
+fuuuuuuuuuuu
+lolol
+moolah
+trololololololololololol
+
+bra0
+rofl
+	swag
+	moolah
+copter

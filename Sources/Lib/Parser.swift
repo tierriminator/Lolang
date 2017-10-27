@@ -588,7 +588,8 @@ public enum SyntaxError: Error {
     case UnexpectedEndOfBlock(Location)
     case TooManyOpenStatementsAtEndOfBlock(count: Int, Location)
     
-    var localizedDescription: String {
+    /// The description of this syntax error
+    public var localizedDescription: String {
         switch self {
         case let .IllegalArgument(arg: a, cmd: c, l):
             return "Illegal argument for command \(c): \(a) at \(l)"

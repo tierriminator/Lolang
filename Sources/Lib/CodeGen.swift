@@ -64,7 +64,6 @@ public func compile(_ ast: AST) -> Module {
         builder.buildStore(val, to: curPtr)
     }
     
-    var roflCounter = 0
     // translate AST
     func compileAST(_ ast: AST) {
         switch ast {
@@ -91,9 +90,10 @@ public func compile(_ ast: AST) -> Module {
             let newVal = builder.buildAdd(curVal, iReg.constant(-i))
             builder.buildStore(newVal, to: curPtr)
         case let .Rofl(t):
-            let loopCond = main.appendBasicBlock(named: "RoflCond "+String(roflCounter))
-            let loopBody = main.appendBasicBlock(named: "RoflBody "+String(roflCounter))
-            let loopEnd = main.appendBasicBlock(named: "Copter "+String(roflCounter))
+            let loopCond = main.appendBasicBlock(named: "RoflCond")
+            let loopBody = main.appendBasicBlock(named: "RoflBody")
+            let loopEnd = main.appendBasicBlock(named: "Copter")
+            builder.buildBr(loopCond)
             builder.positionAtEnd(of: loopCond)
             let curVal = getCurVal()
             let cond = builder.buildICmp(curVal, iReg.zero(), IntPredicate.equal)
@@ -113,20 +113,21 @@ public func compile(_ ast: AST) -> Module {
             saveVal(converted)
         case .Moolah:
             let curReg = builder.buildLoad(curRegPtr)
-            let newReg = builder.buildAdd(curReg, iReg.constant(1))
+            let newReg = builder.buildAdd(curReg, iVirt.constant(1))
             builder.buildStore(newReg, to: curRegPtr)
         case .Yolo:
             let curReg = builder.buildLoad(curRegPtr)
-            let newReg = builder.buildAdd(curReg, iReg.constant(-1))
+            let newReg = builder.buildAdd(curReg, iVirt.constant(-1))
             builder.buildStore(newReg, to: curRegPtr)
         case .Dope:
             let newReg = getCurVal()
             builder.buildStore(newReg, to: curRegPtr)
         case let .Bra(i):
-            builder.buildStore(iReg.constant(i), to: curRegPtr)
+            builder.buildStore(iVirt.constant(i), to: curRegPtr)
         case let .Fuu(i):
             let curVal = getCurVal()
-            saveVal(curVal, to: iReg.constant(i))
+            saveVal(curVal, to: iVirt.constant(i))
+            builder.buildStore(iVirt.constant(i), to: curRegPtr)
         }
     }
     compileAST(ast)

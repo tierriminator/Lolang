@@ -10,7 +10,7 @@ let package = Package(
     ],
     targets: [
         .target(name: "Lib", dependencies: ["LLVM", "PathKit"]),
-        .target(name: "LLC", dependencies: ["Lib"]),
+        .target(name: "lolc", dependencies: ["Lib"]),
         .testTarget(name: "LibTests", dependencies: ["Lib"])
     ]
 )
