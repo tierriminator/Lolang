@@ -23,7 +23,7 @@ Command | Description
 `yolo` | Decrease operational register reference by one
 `dope` | Set operational register reference to the value of the operational register
 `bra<number>` | Set operational register reference to the specified number
-`fuuu...` | Copy the value of the operational register to the register with the index of the number of 'u's and set the operational register reference to that
+`fuuu...` | Copy the value of the operational register to the register with the index of the number of 'u's minus 1 and set the operational register reference to that
 `<whitespace>` | Sequence operator: execute the command before if one exists, and then execute the command after
 
 ### A few more things
@@ -48,7 +48,7 @@ option | description
 `-l` | output LLVM IR
 `-a` | output assembly file
 `-b` | output object file
-`-O<char>` | optimization level \[-O0, -O1, -O2, -O3\] (default: -O2)
+`-O<char>` | optimization level \[`-O0`, `-O1`, `-O2`, `-O3`\] (default: `-O2`)
 
 The options `-l -a -b` are greedy in this order, meaning if `-l` is specified, the other two are ignored and if `-a` is specified, `-b` is ignored
 
