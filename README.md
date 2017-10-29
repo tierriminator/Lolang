@@ -29,7 +29,7 @@ Command | Description
 ### A few more things
 
 - Lolang source files should have the file extension .lol
-- Because Lolang is such a simplistic language, commands should not be necessary and are therefore not included (though they might be included in future releases)
+- Because Lolang is such a simplistic language, comments should not be necessary and are therefore not included (though they might be included in future releases)
 
 ## lolc
 
