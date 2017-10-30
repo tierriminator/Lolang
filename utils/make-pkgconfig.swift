@@ -1,3 +1,5 @@
+#!/usr/bin/env swift
+
 /*
  MIT License
  
@@ -22,8 +24,6 @@
  SOFTWARE.
  */
 
-
-#!/usr/bin/env swift
 import Foundation
 
 #if os(Linux)

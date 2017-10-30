@@ -62,23 +62,23 @@ The options `-l -a -b` are greedy in this order, meaning if `-l` is specified, t
 
 ### Installation
 
-lolc requires LLVM and a C standard library, if you don't have them now, install them.  
+lolc requires LLVM 5 and a C standard library, if you don't have them now, install them.
 `llc` and `ld` should also be in your `PATH`, if they are not, make sure this is the case.
 
 #### Build yourself
 
-If you don't have Swift installed, now is the time.
+lolc is written in [Swift](https://github.com/apple/swift). So to build it it is necessary to have Swift 4 installed.
 
 1. clone this repository
-2. Ensure `llvm-config`, `llc` and `ld` are in your `PATH`. They can normally be found in the `bin` directory of your LLVM installation directory
-3. Create a pkg-config file for you LLVM installation, where a utility is provided for this in the `utils` directory
+2. Ensure `llvm-config`, `llc` and `ld` are in your `PATH`. They can normally be found in the `bin` directory of your LLVM installation directory.
+3. Create a pkg-config file for your LLVM installation. A utility is provided for this in the `utils` directory.
 4. Build with `swift build -c release`
-5. Fetch the executable at the specified location, normally at `.build/release/lolc` and place it where you want
+5. Fetch the executable at the specified location, normally at `.build/release/lolc` and place it where you want.
 
 ### Credits
 
 lolc makes heavy use of [LLVMSwift](https://github.com/trill-lang/LLVMSwift), from which the `make-pkgconfig.swift` utility is also provided.  
-It also uses [PathKit](https://github.com/kylef/PathKit)  
+It also uses [PathKit](https://github.com/kylef/PathKit).
 
 Thanks a lot to the authors of the above projects.
 
