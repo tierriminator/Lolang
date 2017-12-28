@@ -2,11 +2,29 @@
   "object": {
     "pins": [
       {
+        "package": "cllvm",
+        "repositoryURL": "https://github.com/trill-lang/cllvm.git",
+        "state": {
+          "branch": "master",
+          "revision": "e85a8ebe9f45cff9fa31b43c32662318232b392a",
+          "version": null
+        }
+      },
+      {
         "package": "FileCheck",
         "repositoryURL": "https://github.com/trill-lang/FileCheck.git",
         "state": {
           "branch": "master",
           "revision": "e047d6b3ff5d90518593e6decd20a1a485c9191b",
+          "version": null
+        }
+      },
+      {
+        "package": "FileUtils",
+        "repositoryURL": "https://github.com/oarrabi/FileUtils",
+        "state": {
+          "branch": "master",
+          "revision": "291148a7f2eb55695d335e9a386c747cb317652c",
           "version": null
         }
       },
@@ -35,15 +53,6 @@
           "branch": null,
           "revision": "e34d5687e1e9d865e3527dd58bc2f7464ef6d936",
           "version": "0.8.0"
-        }
-      },
-      {
-        "package": "cllvm",
-        "repositoryURL": "https://github.com/trill-lang/cllvm.git",
-        "state": {
-          "branch": "master",
-          "revision": "e85a8ebe9f45cff9fa31b43c32662318232b392a",
-          "version": null
         }
       }
     ]
