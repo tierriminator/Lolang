@@ -4,6 +4,9 @@ import LLVM
 import PathKit
 import struct PathKit.Path
 import FileUtils
+#if os(Linux)
+    import GlibcVersion
+#endif
 
 /// prints the usage information to stderr and exits with exit code -1
 func printUsage() -> Never{
@@ -190,7 +193,13 @@ let ldProc = Process()
 ldProc.launchPath = "/usr/bin/env"
 ldProc.arguments = ["ld", "-o", outFile, "-l:crt1.o", "-lc", objOut]
 #if os(Linux)
-    ldProc.arguments!.append("-l:crti.o");
+    /*
+        On linux the correct dynamic linker is not necesseraly detected by 'ld',
+        therefore we have to indicate the dynamic linker provided by glibc.
+    */
+    // find glibc version
+    let glibcVersion = String(cString: gnu_get_libc_version()!)
+    ldProc.arguments!.append(contentsOf: ["-l:crti.o", "-ldl", "-L/usr/lib", "--dynamic-linker", "/lib/ld-\(glibcVersion).so"]);
 #endif
 ldProc.launch()
 ldProc.waitUntilExit()

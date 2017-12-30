@@ -29,6 +29,15 @@
         }
       },
       {
+        "package": "GlibcVersion",
+        "repositoryURL": "/home/admin/tmp/GlibcVersion",
+        "state": {
+          "branch": "master",
+          "revision": "5962ed3a1b6035af9a1267b24b1b7be03362b2df",
+          "version": null
+        }
+      },
+      {
         "package": "LLVM",
         "repositoryURL": "https://github.com/trill-lang/LLVMSwift",
         "state": {
