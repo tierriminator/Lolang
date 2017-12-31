@@ -60,10 +60,17 @@ The options `-l -a -b` are greedy in this order, meaning if `-l` is specified, t
 - a register is 64 bit and a register index 40 bit wide
 - a page table has the size of a page
 
-### Installation
+### Requirements
 
-lolc requires LLVM 5 and a C standard library, if you don't have them now, install them.
-`llc` and `ld` should also be in your `PATH`, if they are not, make sure this is the case.
+The following libraries are required:
+- LLVM >= 5
+- Standard C library (for Linux: glibc)
+
+The following programs are required and should be accessible via `PATH`:
+- `llc`
+- `ld`
+
+### Installation
 
 #### Build yourself
 
@@ -72,6 +79,7 @@ lolc is written in [Swift](https://github.com/apple/swift). So to build it it is
 1. clone this repository
 2. Ensure `llvm-config`, `llc` and `ld` are in your `PATH`. They can normally be found in the `bin` directory of your LLVM installation directory.
 3. Create a pkg-config file for your LLVM installation. A utility is provided for this in the `utils` directory.
+You can use it as follows from the project root: `sudo swift utils/make-pkgconfig.swift`
 4. Build with `swift build -c release`
 5. Fetch the executable at the specified location, normally at `.build/release/lolc` and place it where you want.
 

@@ -5,3 +5,4 @@
 /LLVM
 /*.xcodeproj
 *.swp
+*.resolved
