@@ -8,11 +8,12 @@
 
 #if os(Linux)
 import XCTest
+@testable import LibTests
 
 XCTMain([
     testCase(CodeStreamTest.allTests),
     testCase(ParsingTreeConstructorTest.allTests),
-    testCase(ParerTest.allTests)
+    testCase(ParserTest.allTests)
     ])
 
 #endif
