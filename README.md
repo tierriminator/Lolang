@@ -86,7 +86,7 @@ You can use it as follows from the project root: `sudo swift utils/make-pkgconfi
 ### Credits
 
 lolc makes heavy use of [LLVMSwift](https://github.com/trill-lang/LLVMSwift), from which the `make-pkgconfig.swift` utility is also provided.  
-It also uses [PathKit](https://github.com/kylef/PathKit).
+It also uses [PathKit](https://github.com/kylef/PathKit) and [FileUtils](https://github.com/nsomar/FileUtils).
 
 Thanks a lot to the authors of the above projects.
 
