@@ -187,7 +187,19 @@ if outFile == "" {
 }
 let ldProc = Process()
 ldProc.launchPath = "/usr/bin/env"
-ldProc.arguments = ["ld", "-o", outFile, "-lcrt1.o", "-lc", objOut]
+ldProc.arguments = ["ld", "-o", outFile, "-lc", objOut]
+#if os(Linux)
+    /*
+        On linux the correct dynamic linker is not necesseraly detected by 'ld',
+        therefore we have to indicate the dynamic linker provided by glibc.
+    */
+    // find glibc version
+    let glibcVersion = String(cString: gnu_get_libc_version()!)
+    ldProc.arguments!.append(contentsOf: ["-l:crt1.o", "-l:crti.o", "-l:crtn.o", "-L/usr/lib", "--dynamic-linker", "/lib/ld-\(glibcVersion).so"]);
+#else
+    ldProc.arguments!.append("-lcrt1.o")
+#endif
+>>>>>>> Stashed changes
 ldProc.launch()
 ldProc.waitUntilExit()
 if ldProc.terminationStatus != 0 {
