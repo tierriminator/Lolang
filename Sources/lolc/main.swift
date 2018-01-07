@@ -123,6 +123,7 @@ do {
         exitGracefully()
     }
 } catch {
+    print(error)
     let syntaxError = error as! SyntaxError
     fail(syntaxError.localizedDescription)
 }
