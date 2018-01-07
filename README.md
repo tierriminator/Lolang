@@ -24,6 +24,8 @@ Command | Description
 `dope` | Set operational register reference to the value of the operational register
 `bra<number>` | Set operational register reference to the specified number
 `fuuu...` | Copy the value of the operational register to the register with the index of the number of 'u's minus 1 and set the operational register reference to that
+`swag` | Output the value of the operational register as a character to `stdout`
+`burr` | Read one character from `stdin` and save it to the operational register
 `<whitespace>` | Sequence operator: execute the command before if one exists, and then execute the command after
 
 ### A few more things
