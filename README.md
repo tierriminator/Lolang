@@ -24,6 +24,8 @@ Command | Description
 `dope` | Set operational register reference to the value of the operational register
 `bra<number>` | Set operational register reference to the specified number
 `fuuu...` | Copy the value of the operational register to the register with the index of the number of 'u's minus 1 and set the operational register reference to that
+`swag` | Output the value of the operational register as a character to `stdout`
+`burr` | Read one character from `stdin` and save it to the operational register
 `<whitespace>` | Sequence operator: execute the command before if one exists, and then execute the command after
 
 ### A few more things
@@ -60,10 +62,17 @@ The options `-l -a -b` are greedy in this order, meaning if `-l` is specified, t
 - a register is 64 bit and a register index 40 bit wide
 - a page table has the size of a page
 
-### Installation
+### Requirements
 
-lolc requires LLVM 5 and a C standard library, if you don't have them now, install them.
-`llc` and `ld` should also be in your `PATH`, if they are not, make sure this is the case.
+The following libraries are required:
+- LLVM >= 5
+- Standard C library (for Linux: glibc)
+
+The following programs are required and should be accessible via `PATH`:
+- `llc`
+- `ld`
+
+### Installation
 
 #### Build yourself
 
@@ -72,13 +81,14 @@ lolc is written in [Swift](https://github.com/apple/swift). So to build it it is
 1. clone this repository
 2. Ensure `llvm-config`, `llc` and `ld` are in your `PATH`. They can normally be found in the `bin` directory of your LLVM installation directory.
 3. Create a pkg-config file for your LLVM installation. A utility is provided for this in the `utils` directory.
+You can use it as follows from the project root: `sudo swift utils/make-pkgconfig.swift`
 4. Build with `swift build -c release`
 5. Fetch the executable at the specified location, normally at `.build/release/lolc` and place it where you want.
 
 ### Credits
 
 lolc makes heavy use of [LLVMSwift](https://github.com/trill-lang/LLVMSwift), from which the `make-pkgconfig.swift` utility is also provided.  
-It also uses [PathKit](https://github.com/kylef/PathKit).
+It also uses [PathKit](https://github.com/kylef/PathKit) and [FileUtils](https://github.com/nsomar/FileUtils).
 
 Thanks a lot to the authors of the above projects.
 

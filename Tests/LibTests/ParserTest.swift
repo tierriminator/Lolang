@@ -14,8 +14,9 @@ class CodeStreamTest: XCTestCase {
     #if os(Linux)
     static var allTests = {
         [
-            ("testEmpty", testEmpty()),
-            ("testFull", testFull())
+            ("testEmpty", testEmpty),
+            ("testFull", testFull),
+            ("testMultiplePeek", testMultiplePeek)
         ]
     }()
     #endif
@@ -72,13 +73,13 @@ class ParsingTreeConstructorTest: XCTestCase {
     #if os(Linux)
     static var allTests = {
     [
-    ("testEmpty", testEmpty()),
-    ("testSingleLeaf", testSingleLeaf()),
-    ("testSingleNodeAndLeaf", testSingleNodeAndLeaf()),
-    ("testSingleBranch", testSingleBranch()),
-    ("testDoubleBranch", testDoubleBranch()),
-    ("testFull", testFull()),
-    ("testFault", testFault()),
+    ("testEmpty", testEmpty),
+    ("testSingleLeaf", testSingleLeaf),
+    ("testSingleNodeAndLeaf", testSingleNodeAndLeaf),
+    ("testSingleBranch", testSingleBranch),
+    ("testDoubleBranch", testDoubleBranch),
+    ("testFull", testFull),
+    ("testFault", testFault),
     ]
     }()
     #endif
@@ -182,7 +183,16 @@ class ParserTest: XCTestCase {
     #if os(Linux)
     static var allTests = {
     [
-    ("testEmpty", testEmpty()),
+    ("testEmpty", testEmpty),
+    ("testOneCommand", testOneCommand),
+    ("testTwoCommands", testTwoCommands),
+    ("testRofl", testRofl),
+    ("testSimpleProgram", testSimpleProgram),
+    ("testInvalidPrefix", testInvalidPrefix),
+    ("testIllegalArgument", testIllegalArgument),
+    ("testUnexpectedEOC", testUnexpectedEOC),
+    ("testUnexpectedEOB", testUnexpectedEOB),
+    ("testTooManyOpenStatements", testTooManyOpenStatements)
     ]
     }()
     #endif

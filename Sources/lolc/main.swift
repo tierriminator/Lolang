@@ -2,6 +2,11 @@ import Foundation
 import Lib
 import LLVM
 import PathKit
+import struct PathKit.Path
+import FileUtils
+#if os(Linux)
+    import GlibcVersion
+#endif
 
 /// prints the usage information to stderr and exits with exit code -1
 func printUsage() -> Never{
@@ -100,11 +105,10 @@ while i < arguments.count {
 }
 
 // load source file
-let sourceURL = URL(fileURLWithPath: sourcePath.absolute().string)
 let code: String
 do {
     /// the lolang code that should be compiled
-    code = try String(contentsOf: sourceURL)
+    code = try File.read(atPath: sourcePath.absolute().string)
 } catch {
     fail("Could not load source file \(sourcePath): \(error)")
 }
@@ -199,7 +203,6 @@ ldProc.arguments = ["ld", "-o", outFile, "-lc", objOut]
 #else
     ldProc.arguments!.append("-lcrt1.o")
 #endif
->>>>>>> Stashed changes
 ldProc.launch()
 ldProc.waitUntilExit()
 if ldProc.terminationStatus != 0 {

@@ -9,6 +9,7 @@
 import Foundation
 import XCTest
 import Lib
+import Dispatch
 
 extension XCTestCase {
     func expectFatalError(expectedMessage: String, testcase: @escaping () -> Void) {
