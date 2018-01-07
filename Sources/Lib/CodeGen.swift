@@ -40,7 +40,7 @@ public func compile(_ ast: AST) -> Module {
     // add address resolution function
     let addRes = buildAddressResolutionFunction(builder, rootPT: rootPt, calloc: calloc)
     // build main function
-    let main = builder.addFunction("main", type: FunctionType(argTypes: [], returnType: VoidType()))
+    let main = builder.addFunction("main", type: FunctionType(argTypes: [], returnType: i32))
     let entry = main.appendBasicBlock(named: "entry")
     builder.positionAtEnd(of: entry)
     
@@ -131,7 +131,7 @@ public func compile(_ ast: AST) -> Module {
         }
     }
     compileAST(ast)
-    builder.buildRetVoid()
+    builder.buildRet(i32.zero())
     
     return module
 }
