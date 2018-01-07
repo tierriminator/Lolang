@@ -5,4 +5,4 @@ before_install:
   - export PATH=$PATH:/usr/local/opt/llvm/bin
 install:
   - sudo swift utils/make-pkgconfig.swift
-script: swift build -c release -Xswiftc "-target" -Xswiftc "x86_64-applemacosx10.12" && swift test -Xswiftc "-target" -Xswiftc "x86_64-applemacosx10.12" && swift run lolc HelloWorld.lol && ./HelloWorld
+script: swift build -c release -Xswiftc "-target" -Xswiftc "x86_64-apple-macosx10.12" && swift test -Xswiftc "-target" -Xswiftc "x86_64-apple-macosx10.12" && swift run lolc HelloWorld.lol && ./HelloWorld
