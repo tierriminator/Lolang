@@ -200,9 +200,9 @@ ldProc.arguments = ["ld", "-o", outFile, objOut]
     */
     // find glibc version
     let glibcVersion = String(cString: gnu_get_libc_version()!)
-    ldProc.arguments!.append(contentsOf: ["-l:crt1.o", "-l:crti.o", "-l:crtn.o", "-L/usr/lib", "--dynamic-linker", "/lib/ld-\(glibcVersion).so", "-lc"]);
+    ldProc.arguments!.append(contentsOf: ["-l:crt1.o", "-l:crti.o", "-l:crtn.o", "-L/usr/lib", "--dynamic-linker", "/lib/ld-\(glibcVersion).so", "-lc"])
 #else
-    ldProc.arguments!.append("-lcrt1.o", "-lc")
+    ldProc.arguments!.append(contentsOf: ["-lcrt1.o", "-lc"])
 #endif
 ldProc.launch()
 ldProc.waitUntilExit()
