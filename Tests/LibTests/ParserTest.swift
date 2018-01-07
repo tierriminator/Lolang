@@ -184,6 +184,7 @@ class ParserTest: XCTestCase {
     static var allTests = {
     [
     ("testEmpty", testEmpty),
+    ("testEmptyWhitespace", testEmptyWhitespace),
     ("testOneCommand", testOneCommand),
     ("testTwoCommands", testTwoCommands),
     ("testRofl", testRofl),
@@ -199,6 +200,14 @@ class ParserTest: XCTestCase {
     
     func testEmpty() {
         let test = ""
+        let supposed: AST? = nil
+        let p = Parser(test)
+        let out = try! p.parse()
+        XCTAssert(out == supposed)
+    }
+
+    func testEmptyWhitespace() {
+        let test = " \n\t "
         let supposed: AST? = nil
         let p = Parser(test)
         let out = try! p.parse()

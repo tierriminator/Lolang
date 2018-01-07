@@ -161,7 +161,12 @@ public class Parser {
             stream.next()
         }
         let prev = parsed.popLast()
-        let next =  try parseNextStmt()
+        let next: AST?
+        if stream.peek() != nil { // The sequence operator must expect EOC as its postfix argument
+            next =  try parseNextStmt()
+        } else {
+            next = nil
+        }
         if prev != nil && next != nil {
             return AST.Seq(prev!, next!)
         } else {
@@ -313,6 +318,9 @@ public class Parser {
         endOfBlock = false
         let res = parsed.popLast()
         level -= 1 // must be at last, because parsed is calculated with level
+        if res == AST.EmptySeq(nil, nil) { // A single empty sequence is a empty program
+            return nil
+        }
         return res
     }
 }
