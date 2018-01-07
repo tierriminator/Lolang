@@ -5,4 +5,4 @@ before_install:
   - export PATH=$PATH:/usr/local/opt/llvm/bin
 install:
   - sudo swift utils/make-pkgconfig.swift
-script: swift build -c release && swift test
+script: swift build -c release && swift test && swift run lolc HelloWorld.lol && ./HelloWorld
