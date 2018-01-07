@@ -192,7 +192,7 @@ if outFile == "" {
 }
 let ldProc = Process()
 ldProc.launchPath = "/usr/bin/env"
-ldProc.arguments = ["ld", "-o", outFile, "-lc", objOut]
+ldProc.arguments = ["ld", "-o", outFile, objOut]
 #if os(Linux)
     /*
         On linux the correct dynamic linker is not necesseraly detected by 'ld',
@@ -200,9 +200,9 @@ ldProc.arguments = ["ld", "-o", outFile, "-lc", objOut]
     */
     // find glibc version
     let glibcVersion = String(cString: gnu_get_libc_version()!)
-    ldProc.arguments!.append(contentsOf: ["-l:crt1.o", "-l:crti.o", "-l:crtn.o", "-L/usr/lib", "--dynamic-linker", "/lib/ld-\(glibcVersion).so"]);
+    ldProc.arguments!.append(contentsOf: ["-l:crt1.o", "-l:crti.o", "-l:crtn.o", "-L/usr/lib", "--dynamic-linker", "/lib/ld-\(glibcVersion).so", "-lc"]);
 #else
-    ldProc.arguments!.append("-lcrt1.o")
+    ldProc.arguments!.append("-lcrt1.o", "-lc")
 #endif
 ldProc.launch()
 ldProc.waitUntilExit()
